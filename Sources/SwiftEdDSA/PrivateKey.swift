@@ -211,4 +211,14 @@ public class PrivateKey: CustomStringConvertible {
         }
     }
 
+    public func asX25519() throws -> Bytes {
+        let md = MessageDigest(.SHA2_512)
+        md.update(self.s)
+        let h = md.digest()
+        var h0 = Bytes(h[0 ..< 32])
+        h0[0] &= 0xf8
+        h0[31] &= 0x7f
+        h0[31] |= 0x40
+        return h0
+    }
 }

@@ -7,6 +7,7 @@
 
 import ASN1
 import Digest
+import BigInt
 
 public class PublicKey: CustomStringConvertible {
     
@@ -227,5 +228,13 @@ public class PublicKey: CustomStringConvertible {
         return a
     }
 
+    public func asX25519() -> Bytes {
+        let p = self.points25519.first!
+        let y = Point25519.modP(p.Y * p.Z.modInverse(Ed25519.P))
+        let num = Point25519.modP(BInt.ONE + y)
+        let recip = Point25519.modP((BInt.ONE - y).modInverse(Ed25519.P))
+        let res = Point25519.modP(num * recip)
+        return res.asSignedBytes().reversed() // BigInt lib is big-endian, output should be little-endian
+    }
 }
 
