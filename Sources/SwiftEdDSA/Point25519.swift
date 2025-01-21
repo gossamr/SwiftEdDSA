@@ -95,6 +95,24 @@ struct Point25519 {
         return bytes
     }
 
+    /// Multiplies the current point by a scalar using the double-and-add method.
+    /// - Parameter scalar: The scalar value as a `BInt`.
+    /// - Returns: The resulting `Point25519` after multiplication.
+    func multiply(_ scalar: BInt) -> Point25519 {
+        guard scalar > 0 else { print("[Point25519.multiply Error]: scalar is not >0"); return Point25519() }
+        var result = Point25519.INFINITY
+        var addend = self
+        var k = scalar
+        while k > 0 {
+            if k.isOdd {
+                result = result.add(addend)
+            }
+            addend = addend.double(1)
+            k >>= 1
+        }
+        return result
+    }
+
     // Multiply the generator point
     // [GUIDE] - algorithm 3.41, window width = 4
     static func multiplyG(_ n: Bytes) -> Point25519 {

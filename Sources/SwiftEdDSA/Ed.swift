@@ -24,7 +24,7 @@ public class Ed {
     private init() {
     }
     
-    static func randomBytes(_ bytes: inout Bytes) {
+    public static func randomBytes(_ bytes: inout Bytes) {
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else {
             fatalError("randomBytes failed")
         }
@@ -46,6 +46,10 @@ public class Ed {
         case pemStructure
         /// Signature size exception
         case signatureSize
+        /// Missing private key exception
+        case privateKeyMissing
+        /// Missing public key exception
+        case publicKeyMissing
     }
 
     
@@ -129,7 +133,7 @@ public class Ed {
         }
     }
 
-    static func toBInt(_ x: Bytes) -> BInt {
+    public static func toBInt(_ x: Bytes) -> BInt {
         var m = Limbs(repeating: 0, count: (x.count + 7) / 8)
         var j = -1
         for i in 0 ..< x.count {
@@ -141,4 +145,13 @@ public class Ed {
         return BInt(m)
     }
 
+    public static func randomNonce(kind: Ed.Kind) -> BInt {
+        // Generates random scalar between (1, L-1)
+        switch kind {
+        case .ed25519:
+            return (Ed25519.L + BInt.ONE).randomLessThan() - BInt.ONE
+        case .ed448:
+            return (Ed448.L + BInt.ONE).randomLessThan() - BInt.ONE
+        }
+    }
 }

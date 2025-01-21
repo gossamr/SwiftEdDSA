@@ -162,4 +162,29 @@ class TestSignature25519: XCTestCase {
         XCTAssertEqual(sig2, try Ed.decodeSignature(signature: Ed.encodeSignature(signature: sig2)))
     }
 
+    // Test Ed448
+    func test7() throws {
+        let (pub, priv) = Ed.makeKeyPair(kind: .ed448)
+        var msg = Bytes(repeating: 0, count: 32)
+        Ed.randomBytes(&msg)
+        var ctx = Bytes(repeating: 0, count: 32)
+        Ed.randomBytes(&ctx)
+        let sig1 = try priv.sign(message: msg, context: ctx, deterministic: true)
+        let sig2 = try priv.sign(message: msg, context: ctx, deterministic: false)
+        XCTAssertTrue(pub.verify(signature: sig1, message: msg, context: ctx))
+        XCTAssertTrue(pub.verify(signature: sig2, message: msg, context: ctx))
+    }
+
+    // Test Ed25519ctx
+    func test8() throws {
+        let (pub, priv) = Ed.makeKeyPair(kind: .ed25519)
+        var msg = Bytes(repeating: 0, count: 32)
+        Ed.randomBytes(&msg)
+        var ctx = Bytes(repeating: 0, count: 32)
+        Ed.randomBytes(&ctx)
+        let sig1 = try priv.sign(message: msg, context: ctx, deterministic: true)
+        let sig2 = try priv.sign(message: msg, context: ctx, deterministic: false)
+        XCTAssertTrue(pub.verify(signature: sig1, message: msg, context: ctx))
+        XCTAssertTrue(pub.verify(signature: sig2, message: msg, context: ctx))
+    }
 }

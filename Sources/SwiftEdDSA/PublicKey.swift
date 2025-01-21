@@ -151,7 +151,7 @@ public class PublicKey: CustomStringConvertible {
     /// - Returns: `true` if the signature is verified, else `false`
     public func verify(signature: Bytes, message: Bytes, context: Bytes = []) -> Bool {
         if signature.count == 64 {
-            if context.count > 0 {
+            if context.count > 255 {
                 return false
             }
             let R = Bytes(signature[0 ..< 32])
@@ -160,6 +160,9 @@ public class PublicKey: CustomStringConvertible {
                 return false
             }
             let md = MessageDigest(.SHA2_512)
+            if context.count > 0 {
+                md.update(Ed25519.dom2Bytes(context))
+            }
             md.update(R)
             md.update(self.r)
             md.update(message)
@@ -229,12 +232,11 @@ public class PublicKey: CustomStringConvertible {
     }
 
     public func asX25519() -> Bytes {
-        let p = self.points25519.first!
+        let p = self.points25519[0]
         let y = Point25519.modP(p.Y * p.Z.modInverse(Ed25519.P))
         let num = Point25519.modP(BInt.ONE + y)
         let recip = Point25519.modP((BInt.ONE - y).modInverse(Ed25519.P))
-        let res = Point25519.modP(num * recip)
-        return res.asSignedBytes().reversed() // BigInt lib is big-endian, output should be little-endian
+        return Ed25519.toBytes(Point25519.modP(num * recip))
     }
 }
 
