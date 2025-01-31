@@ -9,7 +9,7 @@ import ASN1
 import Digest
 import BigInt
 
-public class PublicKey: CustomStringConvertible {
+public class PublicKey: CustomStringConvertible, Codable {
     
     // MARK: Stored Properties
 
@@ -237,6 +237,21 @@ public class PublicKey: CustomStringConvertible {
         let num = Point25519.modP(BInt.ONE + y)
         let recip = Point25519.modP((BInt.ONE - y).modInverse(Ed25519.P))
         return Ed25519.toBytes(Point25519.modP(num * recip))
+    }
+
+    enum CodingKeys: CodingKey {
+        case key
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.r, forKey: .key)
+    }
+
+    required public convenience init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let pubKeyRaw = try container.decode(Bytes.self, forKey: .key)
+        try self.init(r: pubKeyRaw)
     }
 }
 

@@ -10,7 +10,7 @@ import BigInt
 import ASN1
 import Digest
 
-public class PrivateKey: CustomStringConvertible {
+public class PrivateKey: CustomStringConvertible, Codable {
 
     // MARK: Stored Properties
     
@@ -227,5 +227,20 @@ public class PrivateKey: CustomStringConvertible {
         h0[31] &= 0x7f
         h0[31] |= 0x40
         return h0
+    }
+
+    enum CodingKeys: CodingKey {
+        case key
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.s, forKey: .key)
+    }
+
+    required public convenience init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let pubKeyRaw = try container.decode(Bytes.self, forKey: .key)
+        try self.init(s: pubKeyRaw)
     }
 }

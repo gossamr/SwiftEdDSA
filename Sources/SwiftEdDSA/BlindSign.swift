@@ -15,9 +15,9 @@ public class BlindSign {
     let P: Point25519
     let R: Point25519
 
-    public init(Pb: Bytes, Rb: Bytes) throws {
-        self.a = Ed.randomNonce(kind: .ed25519)
-        self.b = Ed.randomNonce(kind: .ed25519)
+    public init(Pb: Bytes, Rb: Bytes, a: BInt? = nil, b: BInt? = nil) throws {
+        self.a = a != nil ? a! : Ed.randomNonce(kind: .ed25519)
+        self.b = b != nil ? b! : Ed.randomNonce(kind: .ed25519)
         self.P = try Ed25519.decode(Pb)
         let aG: Point25519 = BlindSign.scalarToPoint(self.a)
         let RaG = try Ed25519.decode(Rb).add(aG)
@@ -31,6 +31,14 @@ public class BlindSign {
 
     public static func scalarToPoint(_ s: BInt) -> Bytes {
         return scalarToPoint(s).encode()
+    }
+
+    public func getA() -> Bytes {
+        return Ed25519.toBytes(self.a)
+    }
+
+    public func getB() -> Bytes {
+        return Ed25519.toBytes(self.b)
     }
 
     public func transaction(msg: Bytes) throws -> Bytes {
